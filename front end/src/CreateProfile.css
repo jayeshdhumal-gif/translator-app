@@ -1,0 +1,7 @@
+.create-profile { max-width: 620px; }
+.create-profile label { display: grid; gap: 6px; margin: 14px 0; font-size: 14px; font-weight: bold; }
+.create-profile input, .create-profile textarea { width: 100%; border: 1px solid #bfcfc6; padding: 10px; font: inherit; }
+.create-profile textarea { min-height: 80px; resize: vertical; }
+.create-profile button { width: 100%; border: 0; padding: 11px 16px; background: #176b4c; color: white; font-weight: bold; cursor: pointer; }
+.create-profile button:hover { background: #0d5038; }
+.create-message { color: #176b4c; font-size: 13px; }

@@ -1,0 +1,5 @@
+.profile-list { max-width: 760px; }
+.profile-list .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.profile-list .section-heading button { border: 0; padding: 11px 16px; background: #e5b83f; color: #1e2d27; font-weight: bold; cursor: pointer; }
+.profile-list .section-heading button:hover { background: #d6a92c; }
+.list-message { color: #176b4c; font-size: 13px; }.empty { color: #98a2b3; }.profile { border-top: 1px solid #e1e8e4; padding: 14px 0; }.profile h3 { margin: 0 0 5px; }.profile p { color: #66756e; font-size: 13px; margin: 6px 0; }.profile small { color: #176b4c; font-weight: bold; }
