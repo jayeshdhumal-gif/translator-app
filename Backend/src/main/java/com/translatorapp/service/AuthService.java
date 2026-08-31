@@ -1,10 +1,14 @@
-package com.translatorapp.auth;
+package com.translatorapp.service;
 
-import com.translatorapp.security.JwtService;
-import com.translatorapp.user.User;
-import com.translatorapp.user.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import com.translatorapp.profile.AuthResponse;
+import com.translatorapp.profile.LoginRequest;
+import com.translatorapp.profile.RegisterRequest;
+import com.translatorapp.profile.User;
+import com.translatorapp.repository.UserRepository;
+import com.translatorapp.security.JwtService;
 
 @Service
 public class AuthService {
@@ -48,7 +52,7 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid email or password");

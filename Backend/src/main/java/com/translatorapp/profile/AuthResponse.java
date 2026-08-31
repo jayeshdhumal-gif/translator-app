@@ -1,4 +1,4 @@
-package com.translatorapp.auth;
+package com.translatorapp.profile;
 
 public class AuthResponse {
     private String token;

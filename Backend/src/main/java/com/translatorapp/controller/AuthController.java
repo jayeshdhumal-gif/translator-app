@@ -1,8 +1,13 @@
-package com.translatorapp.auth;
+package com.translatorapp.controller;
 
-import com.translatorapp.user.User;
-import com.translatorapp.user.UserRepository;
+import com.translatorapp.profile.AuthResponse;
+import com.translatorapp.profile.LoginRequest;
+import com.translatorapp.profile.RegisterRequest;
+import com.translatorapp.profile.User;
+import com.translatorapp.repository.UserRepository;
 import com.translatorapp.security.JwtService;
+import com.translatorapp.service.AuthService;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
