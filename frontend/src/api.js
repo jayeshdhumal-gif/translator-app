@@ -53,7 +53,16 @@ async function request(url, options = {}, requiresAuth = false) {
   }
 
   const text = await response.text();
-  return text ? JSON.parse(text) : null;
+
+  if (!text) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    return text;
+  }
 }
 
 export async function registerUser(user) {
