@@ -1,7 +1,590 @@
-.create-profile { max-width: 620px; }
-.create-profile label { display: grid; gap: 6px; margin: 14px 0; font-size: 14px; font-weight: bold; }
-.create-profile input, .create-profile textarea { width: 100%; border: 1px solid #bfcfc6; padding: 10px; font: inherit; }
-.create-profile textarea { min-height: 80px; resize: vertical; }
-.create-profile button { width: 100%; border: 0; padding: 11px 16px; background: #176b4c; color: white; font-weight: bold; cursor: pointer; }
-.create-profile button:hover { background: #0d5038; }
-.create-message { color: #176b4c; font-size: 13px; }
+
+/* =========================================================
+   CREATE PROFILE
+   ========================================================= */
+
+.create-profile {
+    width: min(820px, 100%);
+    margin: 0 auto;
+}
+
+.modern-card {
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid #dce7e2;
+    border-radius: 22px;
+    padding: 34px;
+
+    box-shadow:
+        0 20px 55px rgba(24, 61, 43, 0.07);
+
+    animation: profileFormAppear 0.4s ease;
+}
+
+@keyframes profileFormAppear {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.profile-form-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    padding-bottom: 25px;
+    margin-bottom: 28px;
+
+    border-bottom: 1px solid #e7eeeb;
+}
+
+.form-header-icon {
+    width: 48px;
+    height: 48px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 14px;
+
+    background: #e7f3ee;
+
+    font-size: 21px;
+}
+
+.section-label {
+    display: block;
+
+    margin-bottom: 3px;
+
+    color: #176b4c;
+
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.3px;
+}
+
+.profile-form-header h2 {
+    margin: 0 0 5px;
+
+    color: #17221e;
+
+    font-size: 22px;
+    letter-spacing: -0.6px;
+}
+
+.profile-form-header p {
+    margin: 0;
+
+    color: #87938e;
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   FORM SECTION
+   ========================================================= */
+
+.form-section {
+    padding: 24px 0;
+
+    border-bottom: 1px solid #edf1ef;
+}
+
+.form-section:first-of-type {
+    padding-top: 0;
+}
+
+.form-section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    margin-bottom: 20px;
+}
+
+.form-section-title > span {
+    width: 30px;
+    height: 30px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 9px;
+
+    background: #edf5f1;
+
+    color: #176b4c;
+
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.form-section-title div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.form-section-title strong {
+    font-size: 12px;
+}
+
+.form-section-title small {
+    color: #929c97;
+
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   GRID
+   ========================================================= */
+
+.form-grid {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 18px;
+}
+
+
+/* =========================================================
+   INPUT FIELD
+   ========================================================= */
+
+.modern-field {
+    display: flex;
+    flex-direction: column;
+
+    gap: 7px;
+
+    margin: 0;
+}
+
+.modern-field > span {
+    color: #3d4943;
+
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.modern-field input,
+.modern-field textarea {
+    width: 100%;
+
+    border: 1px solid #d8e3de;
+    border-radius: 10px;
+
+    background: #fafcfb;
+
+    color: #17221e;
+
+    font-size: 12px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.modern-field input {
+    height: 44px;
+
+    padding: 0 13px;
+}
+
+.modern-field textarea {
+    min-height: 120px;
+
+    padding: 12px 13px;
+
+    resize: vertical;
+
+    line-height: 1.6;
+}
+
+.modern-field input::placeholder,
+.modern-field textarea::placeholder {
+    color: #a6b0ab;
+}
+
+.modern-field input:hover,
+.modern-field textarea:hover {
+    border-color: #bfcfc7;
+}
+
+.modern-field input:focus,
+.modern-field textarea:focus {
+    border-color: #2b956e;
+
+    background: white;
+
+    box-shadow:
+        0 0 0 4px rgba(23, 107, 76, 0.07);
+}
+
+.full-field {
+    width: 100%;
+}
+
+
+/* =========================================================
+   LANGUAGE INPUT
+   ========================================================= */
+
+.input-with-icon {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+}
+
+.input-with-icon > span {
+    position: absolute;
+
+    left: 13px;
+
+    font-size: 14px;
+
+    pointer-events: none;
+}
+
+.input-with-icon input {
+    padding-left: 39px;
+}
+
+.field-hint {
+    color: #929c97;
+
+    font-size: 9px;
+    font-weight: 400;
+}
+
+
+/* =========================================================
+   LANGUAGE PREVIEW
+   ========================================================= */
+
+.language-preview {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 7px;
+
+    margin-top: 12px;
+}
+
+.language-preview span {
+    padding: 6px 10px;
+
+    border: 1px solid #cfe5da;
+    border-radius: 999px;
+
+    background: #eff8f4;
+
+    color: #176b4c;
+
+    font-size: 10px;
+    font-weight: 700;
+
+    animation: tagAppear 0.2s ease;
+}
+
+@keyframes tagAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+
+/* =========================================================
+   RATE
+   ========================================================= */
+
+.rate-field {
+    max-width: 330px;
+}
+
+.rate-input {
+    display: flex;
+    align-items: center;
+
+    height: 44px;
+
+    overflow: hidden;
+
+    border: 1px solid #d8e3de;
+    border-radius: 10px;
+
+    background: #fafcfb;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.rate-input:focus-within {
+    border-color: #2b956e;
+
+    background: white;
+
+    box-shadow:
+        0 0 0 4px rgba(23, 107, 76, 0.07);
+}
+
+.rate-input > span:first-child {
+    padding-left: 13px;
+
+    color: #176b4c;
+
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.rate-input input {
+    height: 100%;
+
+    flex: 1;
+
+    min-width: 0;
+
+    padding: 0 8px;
+
+    border: 0;
+
+    background: transparent;
+
+    outline: none;
+
+    color: #17221e;
+
+    font-size: 12px;
+}
+
+.rate-suffix {
+    padding-right: 13px;
+
+    color: #929c97;
+
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.profile-form-footer {
+    padding-top: 25px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+}
+
+
+/* =========================================================
+   MESSAGE
+   ========================================================= */
+
+.profile-form-message {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    margin: 0;
+
+    font-size: 10px;
+}
+
+.profile-form-message span {
+    width: 20px;
+    height: 20px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+
+    font-weight: 800;
+}
+
+.profile-form-message p {
+    margin: 0;
+}
+
+.profile-form-message.success {
+    color: #176b4c;
+}
+
+.profile-form-message.success span {
+    background: #d9f0e5;
+}
+
+.profile-form-message.error {
+    color: #a13e3e;
+}
+
+.profile-form-message.error span {
+    background: #f6dddd;
+}
+
+
+/* =========================================================
+   BUTTON
+   ========================================================= */
+
+.create-profile-button {
+    min-width: 190px;
+    height: 45px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 9px;
+
+    margin-left: auto;
+
+    border: 0;
+    border-radius: 10px;
+
+    background: linear-gradient(
+        135deg,
+        #176b4c,
+        #29906a
+    );
+
+    color: white;
+
+    font-size: 11px;
+    font-weight: 800;
+
+    box-shadow:
+        0 8px 20px rgba(23, 107, 76, 0.17);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.create-profile-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 12px 25px rgba(23, 107, 76, 0.22);
+}
+
+.create-profile-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.create-profile-button:disabled {
+    opacity: 0.65;
+
+    cursor: not-allowed;
+}
+
+.create-profile-button > span:last-child {
+    font-size: 17px;
+
+    transition: transform 0.2s ease;
+}
+
+.create-profile-button:hover > span:last-child {
+    transform: translateX(3px);
+}
+
+
+/* =========================================================
+   SPINNER
+   ========================================================= */
+
+.create-spinner {
+    width: 14px;
+    height: 14px;
+
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: white;
+
+    border-radius: 50%;
+
+    animation: createSpin 0.7s linear infinite;
+}
+
+@keyframes createSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 650px) {
+
+    .modern-card {
+        padding: 22px;
+
+        border-radius: 17px;
+    }
+
+    .profile-form-header {
+        align-items: flex-start;
+    }
+
+    .profile-form-header h2 {
+        font-size: 19px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rate-field {
+        max-width: none;
+    }
+
+    .profile-form-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .create-profile-button {
+        width: 100%;
+    }
+
+    .profile-form-message {
+        align-items: flex-start;
+    }
+}
