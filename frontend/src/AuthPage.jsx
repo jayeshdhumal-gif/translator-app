@@ -6,7 +6,8 @@ import './AuthPage.css';
 const initialForm = {
   name: '',
   email: '',
-  password: ''
+  password: '',
+  role: 'USER'
 };
 
 export default function AuthPage({ onLogin }) {
@@ -43,7 +44,8 @@ export default function AuthPage({ onLogin }) {
         const response = await registerUser({
           name: form.name,
           email: form.email,
-          password: form.password
+          password: form.password,
+          role: form.role
         });
 
         setMessage(
@@ -268,6 +270,28 @@ export default function AuthPage({ onLogin }) {
                 </button>
               </div>
             </label>
+
+            {/* Role */}
+{!isLogin && (
+  <label className="auth-field">
+    <span className="field-label">I want to register as</span>
+
+    <div className="input-wrapper role-wrapper">
+      <span className="input-icon">👤</span>
+
+      <select
+        name="role"
+        value={form.role}
+        onChange={updateForm}
+        className="role-select"
+        required
+      >
+        <option value="USER">User</option>
+        <option value="TRANSLATOR">Translator</option>
+      </select>
+    </div>
+  </label>
+)}
 
             {/* Login helper */}
             {isLogin && (

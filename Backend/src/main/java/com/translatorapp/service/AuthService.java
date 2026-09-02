@@ -40,11 +40,17 @@ public class AuthService {
             throw new RuntimeException("Email already exists");
         }
 
+       
+
+        if (!"USER".equals(request.getRole()) && !"TRANSLATOR".equals(request.getRole())) {
+            throw new RuntimeException("Invalid role");
+        }
+
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole("USER");
+        user.setRole(request.getRole());
 
         userRepository.save(user);
         return "User registered successfully";
