@@ -160,14 +160,16 @@ function App() {
         {/* Navigation */}
         <nav className="view-switcher" aria-label="Profile actions">
 
-          <button
-            type="button"
-            className={view === 'create' ? 'active' : ''}
-            onClick={() => setView('create')}
-          >
-            <span className="nav-icon">＋</span>
-            Create Profile
-          </button>
+          {user.role === 'TRANSLATOR' && (
+            <button
+              type="button"
+              className={view === 'create' ? 'active' : ''}
+              onClick={() => setView('create')}
+            >
+              <span className="nav-icon">＋</span>
+              Create Profile
+            </button>
+          )}
 
           <button
             type="button"
@@ -182,8 +184,10 @@ function App() {
 
         {/* Current page */}
         <section className="content-section">
-          {view === 'create' ? <CreateProfile /> : <ProfileList />}
-        </section>
+         {view === 'create' && user.role === 'TRANSLATOR'
+  ? <CreateProfile />
+  : <ProfileList />
+}   </section>
 
       </main>
 
