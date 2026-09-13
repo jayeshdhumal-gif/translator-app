@@ -3,12 +3,16 @@ import { useEffect, useState } from 'react';
 import AuthPage from './AuthPage.jsx';
 import CreateProfile from './CreateProfile.jsx';
 import ProfileList from './ProfileList.jsx';
+import BookingPage from './BookingPage.jsx';
 import { getCurrentUser, getStoredUser, logoutUser } from './api.js';
 
 function App() {
   const [user, setUser] = useState(getStoredUser());
-  const [view, setView] = useState('create');
+  const [view, setView] = useState(
+    getStoredUser()?.role === 'TRANSLATOR' ? 'create' : 'list'
+  );
   const [loadingUser, setLoadingUser] = useState(true);
+  const [selectedTranslator, setSelectedTranslator] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -61,6 +65,16 @@ function App() {
   function handleLogout() {
     logoutUser();
     setUser(null);
+  }
+
+  function handleBook(translator) {
+    setSelectedTranslator(translator);
+    setView('booking');
+  }
+
+  function handleBackToProfiles() {
+    setSelectedTranslator(null);
+    setView('list');
   }
 
   return (
@@ -182,12 +196,24 @@ function App() {
 
         </nav>
 
-        {/* Current page */}
         <section className="content-section">
-         {view === 'create' && user.role === 'TRANSLATOR'
-  ? <CreateProfile />
-  : <ProfileList />
-}   </section>
+
+          {view === 'create' && user.role === 'TRANSLATOR' && (
+            <CreateProfile />
+          )}
+
+          {view === 'list' && (
+            <ProfileList onBook={handleBook} />
+          )}
+
+          {view === 'booking' && selectedTranslator && (
+            <BookingPage
+              translator={selectedTranslator}
+              onBack={handleBackToProfiles}
+            />
+          )}
+
+        </section>
 
       </main>
 

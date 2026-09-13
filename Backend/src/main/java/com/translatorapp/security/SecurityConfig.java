@@ -46,6 +46,11 @@ public class SecurityConfig {
                         "/api/profiles/**"
                 )
                 .hasAnyRole("USER", "TRANSLATOR")
+                .requestMatchers(
+                        HttpMethod.POST,
+                        "/api/bookings"
+                )
+                .hasRole("USER")
                 // ⭐ CHANGED
                 .requestMatchers(
                         HttpMethod.POST,

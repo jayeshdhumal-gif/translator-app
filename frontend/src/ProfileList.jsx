@@ -1,9 +1,9 @@
 
 import { useState } from 'react';
-import { getProfiles } from './api.js';
+import { getProfiles, getStoredUser } from './api.js';
 import './ProfileList.css';
 
-export default function ProfileList() {
+export default function ProfileList({ onBook }) {
   const [profiles, setProfiles] = useState([]);
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -97,6 +97,7 @@ export default function ProfileList() {
             <ProfileCard
               key={profile.id}
               profile={profile}
+              onBook={onBook}
             />
           ))}
 
@@ -108,7 +109,9 @@ export default function ProfileList() {
 }
 
 
-function ProfileCard({ profile }) {
+function ProfileCard({ profile, onBook }) {
+  const user = getStoredUser();
+  const isUser = user?.role === 'USER';
 
   const name = profile.name || 'Translator';
 
@@ -185,13 +188,16 @@ function ProfileCard({ profile }) {
           <span>/hr</span>
         </div>
 
-        <button
-          type="button"
-          className="view-profile-button"
-        >
-          View
-          <span>→</span>
-        </button>
+        {isUser && (
+          <button
+            type="button"
+            className="view-profile-button"
+            onClick={() => onBook(profile)}
+          >
+            Book
+            <span>→</span>
+          </button>
+        )}
 
       </div>
 

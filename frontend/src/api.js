@@ -1,6 +1,7 @@
 const API_BASE_URL = 'http://localhost:8080';
 const AUTH_URL = `${API_BASE_URL}/api/auth`;
 const PROFILE_URL = `${API_BASE_URL}/api/profiles`;
+const BOOKING_URL = `${API_BASE_URL}/api/bookings`;
 
 function getToken() {
   return localStorage.getItem('token');
@@ -115,5 +116,12 @@ export async function createProfile(profile) {
   return request(PROFILE_URL, {
     method: 'POST',
     body: JSON.stringify(profile)
+  }, true);
+}
+
+export async function createBooking(booking) {
+  return request(BOOKING_URL, {
+    method: 'POST',
+    body: JSON.stringify(booking)
   }, true);
 }
