@@ -1,6 +1,17 @@
 import { useState } from 'react';
-import { createBooking } from './api.js';
+import { ethers } from 'ethers';
+import { createBooking, createPaymentApproval } from './api.js';
 import './BookingPage.css';
+
+const TOKEN_ADDRESS =
+    '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+
+const PAYMENT_CONTRACT_ADDRESS =
+    '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
+
+const TOKEN_ABI = [
+    'function approve(address spender, uint256 amount) returns (bool)'
+];
 
 export default function BookingPage({ translator, onBack }) {
 
@@ -9,10 +20,15 @@ export default function BookingPage({ translator, onBack }) {
     const [durationHours, setDurationHours] = useState(1);
 
     const [isBooking, setIsBooking] = useState(false);
+    const [isApproving, setIsApproving] = useState(false);
+
+    const [booking, setBooking] = useState(null);
+
     const [message, setMessage] = useState('');
 
     const totalAmount =
-        Number(translator.hourlyRate || 0) * Number(durationHours);
+        Number(translator.hourlyRate || 0) *
+        Number(durationHours);
 
     const translatorInitials = (translator.name || 'Translator')
         .split(' ')
@@ -21,6 +37,7 @@ export default function BookingPage({ translator, onBack }) {
         .map((part) => part.charAt(0))
         .join('')
         .toUpperCase();
+
 
     async function handleBooking() {
 
@@ -40,20 +57,32 @@ export default function BookingPage({ translator, onBack }) {
 
             setIsBooking(true);
 
-            const booking = {
+            const bookingData = {
                 translatorId: translator.id,
                 bookingDate: bookingDate,
                 startTime: startTime,
                 durationHours: Number(durationHours)
             };
 
-            const response = await createBooking(booking);
+            const response = await createBooking(bookingData);
 
             console.log('Booking created:', response);
 
-            setMessage('Booking created successfully!');
+            /*
+             * Save the booking returned by Spring Boot.
+             *
+             * We need the booking ID later when saving
+             * the payment approval.
+             */
+            setBooking(response);
+
+            setMessage(
+                'Booking created successfully! Please approve the payment.'
+            );
 
         } catch (error) {
+
+            console.error(error);
 
             setMessage(
                 error.message || 'Unable to create booking.'
@@ -62,14 +91,195 @@ export default function BookingPage({ translator, onBack }) {
         } finally {
 
             setIsBooking(false);
-
         }
     }
+
+
+    async function handleApprovePayment() {
+
+        setMessage('');
+
+        try {
+
+            setIsApproving(true);
+
+            // -----------------------------------------
+            // 1. Check MetaMask
+            // -----------------------------------------
+
+            if (!window.ethereum) {
+
+                throw new Error(
+                    'MetaMask is not installed. Please install MetaMask.'
+                );
+            }
+
+
+            // -----------------------------------------
+            // 2. Ask MetaMask for the user's wallet
+            // -----------------------------------------
+
+            const accounts =
+                await window.ethereum.request({
+                    method: 'eth_requestAccounts'
+                });
+
+            const walletAddress = accounts[0];
+
+            console.log(
+                'Connected wallet:',
+                walletAddress
+            );
+
+
+            // -----------------------------------------
+            // 3. Create ethers provider
+            // -----------------------------------------
+
+            const provider =
+                new ethers.BrowserProvider(
+                    window.ethereum
+                );
+
+
+            // -----------------------------------------
+            // 4. Get user's MetaMask signer
+            // -----------------------------------------
+
+            const signer =
+                await provider.getSigner();
+
+
+            // -----------------------------------------
+            // 5. Create TranslatorToken contract
+            // -----------------------------------------
+
+            const tokenContract =
+                new ethers.Contract(
+                    TOKEN_ADDRESS,
+                    TOKEN_ABI,
+                    signer
+                );
+
+
+            // -----------------------------------------
+            // 6. Convert NISK amount to blockchain units
+            // -----------------------------------------
+
+            const amountInWei =
+                ethers.parseUnits(
+                    totalAmount.toString(),
+                    18
+                );
+
+
+            console.log(
+                'Approving amount:',
+                amountInWei.toString()
+            );
+
+
+            // -----------------------------------------
+            // 7. Call approve()
+            // -----------------------------------------
+
+            const transaction =
+                await tokenContract.approve(
+                    PAYMENT_CONTRACT_ADDRESS,
+                    amountInWei
+                );
+
+
+            console.log(
+                'Approval transaction:',
+                transaction.hash
+            );
+
+
+            setMessage(
+                'Approval transaction submitted. Waiting for confirmation...'
+            );
+
+
+            // -----------------------------------------
+            // 8. Wait for blockchain confirmation
+            // -----------------------------------------
+
+            const receipt =
+                await transaction.wait();
+
+
+            console.log(
+                'Approval confirmed:',
+                receipt
+            );
+
+
+            // -----------------------------------------
+            // 9. Send transaction information
+            //    to Spring Boot
+            // -----------------------------------------
+
+            await createPaymentApproval({
+
+                bookingId: booking.id,
+
+                walletAddress: walletAddress,
+
+                tokenAddress: TOKEN_ADDRESS,
+
+                spenderAddress:
+                    PAYMENT_CONTRACT_ADDRESS,
+
+                amount: totalAmount,
+
+                transactionHash:
+                    transaction.hash,
+
+                chainId: 31337
+            });
+
+
+            // -----------------------------------------
+            // 10. Success
+            // -----------------------------------------
+
+            setMessage(
+                'Payment approved successfully!'
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                'Payment approval error:',
+                error
+            );
+
+            if (error.code === 'ACTION_REJECTED') {
+
+                setMessage(
+                    'Transaction was rejected in MetaMask.'
+                );
+
+            } else {
+
+                setMessage(
+                    error.message ||
+                    'Unable to approve payment.'
+                );
+            }
+
+        } finally {
+
+            setIsApproving(false);
+        }
+    }
+
 
     return (
         <section className="booking-page">
 
-            {/* Back button */}
             <button
                 type="button"
                 className="booking-back-button"
@@ -81,7 +291,6 @@ export default function BookingPage({ translator, onBack }) {
 
             <div className="booking-container">
 
-                {/* Header */}
                 <div className="booking-header">
 
                     <span className="booking-label">
@@ -100,7 +309,6 @@ export default function BookingPage({ translator, onBack }) {
                 </div>
 
 
-                {/* Translator summary */}
                 <div className="translator-summary">
 
                     <div className="booking-translator-avatar">
@@ -134,10 +342,8 @@ export default function BookingPage({ translator, onBack }) {
                 </div>
 
 
-                {/* Booking form */}
                 <div className="booking-form">
 
-                    {/* Date */}
                     <label>
                         Booking Date
 
@@ -150,14 +356,15 @@ export default function BookingPage({ translator, onBack }) {
                             }
                             value={bookingDate}
                             onChange={(event) =>
-                                setBookingDate(event.target.value)
+                                setBookingDate(
+                                    event.target.value
+                                )
                             }
                         />
 
                     </label>
 
 
-                    {/* Time */}
                     <label>
                         Start Time
 
@@ -165,14 +372,15 @@ export default function BookingPage({ translator, onBack }) {
                             type="time"
                             value={startTime}
                             onChange={(event) =>
-                                setStartTime(event.target.value)
+                                setStartTime(
+                                    event.target.value
+                                )
                             }
                         />
 
                     </label>
 
 
-                    {/* Duration */}
                     <label>
                         Duration
 
@@ -222,7 +430,6 @@ export default function BookingPage({ translator, onBack }) {
                     </label>
 
 
-                    {/* Total */}
                     <div className="booking-total">
 
                         <span>
@@ -236,29 +443,59 @@ export default function BookingPage({ translator, onBack }) {
                     </div>
 
 
-                    {/* Success / error message */}
                     {message && (
                         <p
-                            className={`booking-message ${message.includes('successfully')
+                            className={`booking-message ${
+                                message.includes(
+                                    'successfully'
+                                )
                                     ? 'success'
                                     : 'error'
-                                }`}
+                            }`}
                         >
                             {message}
                         </p>
                     )}
 
 
-                    {/* Confirm booking */}
-                    <button
-                        type="button"
-                        onClick={handleBooking}
-                        disabled={isBooking}
-                    >
-                        {isBooking
-                            ? 'Booking...'
-                            : 'Confirm Booking'}
-                    </button>
+                    {/* --------------------------------
+                        STEP 1:
+                        Create booking
+                    -------------------------------- */}
+
+                    {!booking && (
+
+                        <button
+                            type="button"
+                            onClick={handleBooking}
+                            disabled={isBooking}
+                        >
+                            {isBooking
+                                ? 'Booking...'
+                                : 'Confirm Booking'}
+                        </button>
+
+                    )}
+
+
+                    {/* --------------------------------
+                        STEP 2:
+                        Approve payment
+                    -------------------------------- */}
+
+                    {booking && (
+
+                        <button
+                            type="button"
+                            onClick={handleApprovePayment}
+                            disabled={isApproving}
+                        >
+                            {isApproving
+                                ? 'Approving Payment...'
+                                : 'Approve Payment'}
+                        </button>
+
+                    )}
 
                 </div>
 

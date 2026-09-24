@@ -57,6 +57,8 @@ public class SecurityConfig {
                         "/api/profiles/**"
                 )
                 .hasRole("TRANSLATOR")
+                .requestMatchers("/api/blockchain/**")
+                .permitAll()
                 .anyRequest()
                 .authenticated()
                 )

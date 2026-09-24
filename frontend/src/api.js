@@ -125,3 +125,16 @@ export async function createBooking(booking) {
     body: JSON.stringify(booking)
   }, true);
 }
+
+
+export async function createPaymentApproval(data) {
+
+    return request(
+        `${API_BASE_URL}/api/payment-approvals`,
+        {
+            method: 'POST',
+            body: JSON.stringify(data)
+        },
+        true
+    );
+}
