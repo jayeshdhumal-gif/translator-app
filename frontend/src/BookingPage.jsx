@@ -1,26 +1,14 @@
 import { useState } from 'react';
-import { ethers } from 'ethers';
-import { createBooking, createPaymentApproval } from './api.js';
+import { createBooking } from './api.js';
 import './BookingPage.css';
 
-const TOKEN_ADDRESS =
-    '0x5FbDB2315678afecb367f032d93F642f64180aa3';
-
-const PAYMENT_CONTRACT_ADDRESS =
-    '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
-
-const TOKEN_ABI = [
-    'function approve(address spender, uint256 amount) returns (bool)'
-];
-
-export default function BookingPage({ translator, onBack }) {
+export default function BookingPage({ translator, onBack, onPaymentApproval }) {
 
     const [bookingDate, setBookingDate] = useState('');
     const [startTime, setStartTime] = useState('');
     const [durationHours, setDurationHours] = useState(1);
 
     const [isBooking, setIsBooking] = useState(false);
-    const [isApproving, setIsApproving] = useState(false);
 
     const [booking, setBooking] = useState(null);
 
@@ -29,6 +17,7 @@ export default function BookingPage({ translator, onBack }) {
     const totalAmount =
         Number(translator.hourlyRate || 0) *
         Number(durationHours);
+
 
     const translatorInitials = (translator.name || 'Translator')
         .split(' ')
@@ -43,242 +32,148 @@ export default function BookingPage({ translator, onBack }) {
 
         setMessage('');
 
+        // -----------------------------------------
+        // 1. Validate booking date
+        // -----------------------------------------
+
         if (!bookingDate) {
-            setMessage('Please select a booking date.');
+
+            setMessage(
+                'Please select a booking date.'
+            );
+
             return;
         }
 
+
+        // -----------------------------------------
+        // 2. Validate start time
+        // -----------------------------------------
+
         if (!startTime) {
-            setMessage('Please select a start time.');
+
+            setMessage(
+                'Please select a start time.'
+            );
+
             return;
         }
+
 
         try {
 
             setIsBooking(true);
 
+
+            // -----------------------------------------
+            // 3. Create booking request
+            // -----------------------------------------
+
             const bookingData = {
-                translatorId: translator.id,
-                bookingDate: bookingDate,
-                startTime: startTime,
-                durationHours: Number(durationHours)
+
+                translatorId:
+                    translator.id,
+
+                bookingDate:
+                    bookingDate,
+
+                startTime:
+                    startTime,
+
+                durationHours:
+                    Number(durationHours)
             };
 
-            const response = await createBooking(bookingData);
 
-            console.log('Booking created:', response);
+            // -----------------------------------------
+            // 4. Send booking to Spring Boot
+            // -----------------------------------------
 
-            /*
-             * Save the booking returned by Spring Boot.
-             *
-             * We need the booking ID later when saving
-             * the payment approval.
-             */
+            const response =
+                await createBooking(bookingData);
+
+
+            console.log(
+                'Booking created:',
+                response
+            );
+
+
+            // -----------------------------------------
+            // 5. Save booking
+            // -----------------------------------------
+
             setBooking(response);
 
-            setMessage(
-                'Booking created successfully! Please approve the payment.'
-            );
-
-        } catch (error) {
-
-            console.error(error);
 
             setMessage(
-                error.message || 'Unable to create booking.'
-            );
-
-        } finally {
-
-            setIsBooking(false);
-        }
-    }
-
-
-    async function handleApprovePayment() {
-
-        setMessage('');
-
-        try {
-
-            setIsApproving(true);
-
-            // -----------------------------------------
-            // 1. Check MetaMask
-            // -----------------------------------------
-
-            if (!window.ethereum) {
-
-                throw new Error(
-                    'MetaMask is not installed. Please install MetaMask.'
-                );
-            }
-
-
-            // -----------------------------------------
-            // 2. Ask MetaMask for the user's wallet
-            // -----------------------------------------
-
-            const accounts =
-                await window.ethereum.request({
-                    method: 'eth_requestAccounts'
-                });
-
-            const walletAddress = accounts[0];
-
-            console.log(
-                'Connected wallet:',
-                walletAddress
-            );
-
-
-            // -----------------------------------------
-            // 3. Create ethers provider
-            // -----------------------------------------
-
-            const provider =
-                new ethers.BrowserProvider(
-                    window.ethereum
-                );
-
-
-            // -----------------------------------------
-            // 4. Get user's MetaMask signer
-            // -----------------------------------------
-
-            const signer =
-                await provider.getSigner();
-
-
-            // -----------------------------------------
-            // 5. Create TranslatorToken contract
-            // -----------------------------------------
-
-            const tokenContract =
-                new ethers.Contract(
-                    TOKEN_ADDRESS,
-                    TOKEN_ABI,
-                    signer
-                );
-
-
-            // -----------------------------------------
-            // 6. Convert NISK amount to blockchain units
-            // -----------------------------------------
-
-            const amountInWei =
-                ethers.parseUnits(
-                    totalAmount.toString(),
-                    18
-                );
-
-
-            console.log(
-                'Approving amount:',
-                amountInWei.toString()
-            );
-
-
-            // -----------------------------------------
-            // 7. Call approve()
-            // -----------------------------------------
-
-            const transaction =
-                await tokenContract.approve(
-                    PAYMENT_CONTRACT_ADDRESS,
-                    amountInWei
-                );
-
-
-            console.log(
-                'Approval transaction:',
-                transaction.hash
-            );
-
-
-            setMessage(
-                'Approval transaction submitted. Waiting for confirmation...'
-            );
-
-
-            // -----------------------------------------
-            // 8. Wait for blockchain confirmation
-            // -----------------------------------------
-
-            const receipt =
-                await transaction.wait();
-
-
-            console.log(
-                'Approval confirmed:',
-                receipt
-            );
-
-
-            // -----------------------------------------
-            // 9. Send transaction information
-            //    to Spring Boot
-            // -----------------------------------------
-
-            await createPaymentApproval({
-
-                bookingId: booking.id,
-
-                walletAddress: walletAddress,
-
-                tokenAddress: TOKEN_ADDRESS,
-
-                spenderAddress:
-                    PAYMENT_CONTRACT_ADDRESS,
-
-                amount: totalAmount,
-
-                transactionHash:
-                    transaction.hash,
-
-                chainId: 31337
-            });
-
-
-            // -----------------------------------------
-            // 10. Success
-            // -----------------------------------------
-
-            setMessage(
-                'Payment approved successfully!'
+                'Booking created successfully!'
             );
 
 
         } catch (error) {
 
             console.error(
-                'Payment approval error:',
+                'Booking error:',
                 error
             );
 
-            if (error.code === 'ACTION_REJECTED') {
 
-                setMessage(
-                    'Transaction was rejected in MetaMask.'
-                );
+            setMessage(
+                error.message ||
+                'Unable to create booking.'
+            );
 
-            } else {
-
-                setMessage(
-                    error.message ||
-                    'Unable to approve payment.'
-                );
-            }
 
         } finally {
 
-            setIsApproving(false);
+            setIsBooking(false);
+
         }
     }
 
 
+    // -----------------------------------------
+    // After booking is created
+    // -----------------------------------------
+
+    function handleContinueToPayment() {
+
+        if (!booking) {
+            return;
+        }
+
+
+        /*
+         * Send the booking information to the
+         * payment approval page.
+         */
+
+        if (onPaymentApproval) {
+
+            onPaymentApproval({
+
+                booking: booking,
+
+                translator: translator,
+
+                totalAmount: totalAmount
+
+            });
+
+        }
+
+    }
+
+
     return (
+
         <section className="booking-page">
+
+
+            {/* -----------------------------------------
+                Back button
+            ----------------------------------------- */}
 
             <button
                 type="button"
@@ -291,29 +186,44 @@ export default function BookingPage({ translator, onBack }) {
 
             <div className="booking-container">
 
+
+                {/* -----------------------------------------
+                    Header
+                ----------------------------------------- */}
+
                 <div className="booking-header">
 
                     <span className="booking-label">
                         BOOKING REQUEST
                     </span>
 
+
                     <h2>
                         Book Translator
                     </h2>
 
+
                     <p>
-                        Choose your preferred date, time and duration
-                        for the translation session.
+                        Choose your preferred date, time and
+                        duration for the translation session.
                     </p>
 
                 </div>
 
 
+                {/* -----------------------------------------
+                    Translator summary
+                ----------------------------------------- */}
+
                 <div className="translator-summary">
 
+
                     <div className="booking-translator-avatar">
+
                         {translatorInitials || 'T'}
+
                     </div>
+
 
                     <div className="translator-summary-info">
 
@@ -321,17 +231,20 @@ export default function BookingPage({ translator, onBack }) {
                             {translator.name || 'Translator'}
                         </h3>
 
+
                         <p>
                             📍 {translator.city || 'Location not provided'}
                         </p>
 
                     </div>
 
+
                     <div className="translator-summary-rate">
 
                         <strong>
                             ₹{translator.hourlyRate || 0}
                         </strong>
+
 
                         <span>
                             / hour
@@ -342,162 +255,263 @@ export default function BookingPage({ translator, onBack }) {
                 </div>
 
 
-                <div className="booking-form">
+                {/* -----------------------------------------
+                    Booking form
+                ----------------------------------------- */}
 
-                    <label>
-                        Booking Date
+                {!booking && (
 
-                        <input
-                            type="date"
-                            min={
-                                new Date()
-                                    .toISOString()
-                                    .split('T')[0]
-                            }
-                            value={bookingDate}
-                            onChange={(event) =>
-                                setBookingDate(
-                                    event.target.value
-                                )
-                            }
-                        />
-
-                    </label>
+                    <div className="booking-form">
 
 
-                    <label>
-                        Start Time
+                        {/* Date */}
 
-                        <input
-                            type="time"
-                            value={startTime}
-                            onChange={(event) =>
-                                setStartTime(
-                                    event.target.value
-                                )
-                            }
-                        />
+                        <label>
 
-                    </label>
+                            Booking Date
 
+                            <input
+                                type="date"
+                                min={
+                                    new Date()
+                                        .toISOString()
+                                        .split('T')[0]
+                                }
+                                value={bookingDate}
+                                onChange={(event) =>
+                                    setBookingDate(
+                                        event.target.value
+                                    )
+                                }
+                            />
 
-                    <label>
-                        Duration
-
-                        <select
-                            value={durationHours}
-                            onChange={(event) =>
-                                setDurationHours(
-                                    Number(event.target.value)
-                                )
-                            }
-                        >
-
-                            <option value="1">
-                                1 hour
-                            </option>
-
-                            <option value="2">
-                                2 hours
-                            </option>
-
-                            <option value="3">
-                                3 hours
-                            </option>
-
-                            <option value="4">
-                                4 hours
-                            </option>
-
-                            <option value="5">
-                                5 hours
-                            </option>
-
-                            <option value="6">
-                                6 hours
-                            </option>
-
-                            <option value="7">
-                                7 hours
-                            </option>
-
-                            <option value="8">
-                                8 hours
-                            </option>
-
-                        </select>
-
-                    </label>
+                        </label>
 
 
-                    <div className="booking-total">
+                        {/* Time */}
 
-                        <span>
-                            Total Amount
-                        </span>
+                        <label>
 
-                        <strong>
-                            ₹{totalAmount}
-                        </strong>
+                            Start Time
 
-                    </div>
+                            <input
+                                type="time"
+                                value={startTime}
+                                onChange={(event) =>
+                                    setStartTime(
+                                        event.target.value
+                                    )
+                                }
+                            />
 
-
-                    {message && (
-                        <p
-                            className={`booking-message ${
-                                message.includes(
-                                    'successfully'
-                                )
-                                    ? 'success'
-                                    : 'error'
-                            }`}
-                        >
-                            {message}
-                        </p>
-                    )}
+                        </label>
 
 
-                    {/* --------------------------------
-                        STEP 1:
-                        Create booking
-                    -------------------------------- */}
+                        {/* Duration */}
 
-                    {!booking && (
+                        <label>
+
+                            Duration
+
+                            <select
+                                value={durationHours}
+                                onChange={(event) =>
+                                    setDurationHours(
+                                        Number(event.target.value)
+                                    )
+                                }
+                            >
+
+                                <option value="1">
+                                    1 hour
+                                </option>
+
+                                <option value="2">
+                                    2 hours
+                                </option>
+
+                                <option value="3">
+                                    3 hours
+                                </option>
+
+                                <option value="4">
+                                    4 hours
+                                </option>
+
+                                <option value="5">
+                                    5 hours
+                                </option>
+
+                                <option value="6">
+                                    6 hours
+                                </option>
+
+                                <option value="7">
+                                    7 hours
+                                </option>
+
+                                <option value="8">
+                                    8 hours
+                                </option>
+
+                            </select>
+
+                        </label>
+
+
+                        {/* Total */}
+
+                        <div className="booking-total">
+
+                            <span>
+                                Total Amount
+                            </span>
+
+
+                            <strong>
+                                ₹{totalAmount}
+                            </strong>
+
+                        </div>
+
+
+                        {/* Error / success */}
+
+                        {message && (
+
+                            <p
+                                className={`booking-message ${
+                                    message.includes(
+                                        'successfully'
+                                    )
+                                        ? 'success'
+                                        : 'error'
+                                }`}
+                            >
+                                {message}
+                            </p>
+
+                        )}
+
+
+                        {/* Create booking */}
 
                         <button
                             type="button"
                             onClick={handleBooking}
                             disabled={isBooking}
                         >
+
                             {isBooking
                                 ? 'Booking...'
                                 : 'Confirm Booking'}
+
                         </button>
 
-                    )}
+                    </div>
+
+                )}
 
 
-                    {/* --------------------------------
-                        STEP 2:
-                        Approve payment
-                    -------------------------------- */}
+                {/* -----------------------------------------
+                    Booking successfully created
+                ----------------------------------------- */}
 
-                    {booking && (
+                {booking && (
 
-                        <button
-                            type="button"
-                            onClick={handleApprovePayment}
-                            disabled={isApproving}
-                        >
-                            {isApproving
-                                ? 'Approving Payment...'
-                                : 'Approve Payment'}
-                        </button>
+                    <div className="booking-form">
 
-                    )}
 
-                </div>
+                        <div className="booking-success-card">
+
+                            <div className="booking-success-icon">
+                                ✓
+                            </div>
+
+
+                            <h3>
+                                Booking Created Successfully
+                            </h3>
+
+
+                            <p>
+                                Your booking has been created.
+                                The next step is to approve the
+                                payment from your MetaMask wallet.
+                            </p>
+
+
+                            <div className="booking-confirmation-info">
+
+                                <div>
+
+                                    <span>
+                                        Booking ID
+                                    </span>
+
+                                    <strong>
+                                        #{booking.id}
+                                    </strong>
+
+                                </div>
+
+
+                                <div>
+
+                                    <span>
+                                        Translator
+                                    </span>
+
+                                    <strong>
+                                        {translator.name}
+                                    </strong>
+
+                                </div>
+
+
+                                <div>
+
+                                    <span>
+                                        Duration
+                                    </span>
+
+                                    <strong>
+                                        {durationHours} hour
+                                        {durationHours > 1 ? 's' : ''}
+                                    </strong>
+
+                                </div>
+
+
+                                <div>
+
+                                    <span>
+                                        Total
+                                    </span>
+
+                                    <strong>
+                                        ₹{totalAmount}
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                onClick={
+                                    handleContinueToPayment
+                                }
+                            >
+                                Continue to Payment
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                )}
 
             </div>
 
